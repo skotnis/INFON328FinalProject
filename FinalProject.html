@@ -1,0 +1,228 @@
+<!doctype html>
+<html>
+<head>
+</head>
+<body>
+    <div id="labelTing" style="position: absolute;"></div>
+    <div id="line"  style="position: absolute; width: 800px; height: 800px; left: 80px; top: 800px; z-index: -1;"></div>
+    <div id="bar" style="position: absolute; width: 800px; height: 800px; left: 80px; top: 0px; z-index: -1;"></div>
+</body>
+<style>
+    .bar {
+        fill: #889b73;
+    }
+    .d {
+        stroke: #889b73;
+    }
+</style>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+
+    //1st visualization
+    var margin = {top: 50, right: 50, bottom: 50, left: 100},
+    width = 700 - margin.left - margin.right,
+    height = 700 - margin.top - margin.bottom;
+
+    var div = document.getElementById('labelTing');
+
+    var svg = d3.select("#line").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform","translate(" + margin.left + "," + margin.top + ")");
+
+        svg.append("text")
+        .attr("transform", "translate(100,0)")
+        .attr("x", -30)
+        .attr("y", -25) 
+        .attr("font-size", "24px")
+        .text("Growth in Worker Productivity Per Year")
+
+        d3.csv("macroecon.csv", function(error, data) {
+        if (error) {
+            throw error;
+        }
+
+    //creating scales
+    var y = d3.scaleLinear()
+        .domain([0, d3.max(data, function(d) { return +d.WorkerProductivity; })])
+        .range([ height, 0 ]);
+        svg.append("g")
+        .call(d3.axisLeft(y)
+        .tickFormat(function(d) {
+            return d + '%';
+        }));
+
+    var x = d3.scaleBand()
+        .domain(data.map(function(d) { return +d.Year; }))
+        .range([ 0,width ])
+        .padding(0.4);
+        svg.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(x));
+
+    var z = d3.scaleLinear()
+        .domain( [d3.min(data, function(d){return d.Year;}), d3.max(data, function(d){return d.Year;})] )
+        .range([ 0, width ]);
+
+    var dict = {};
+        data.map(function (d) {
+        dict[d.Year] = d.DebtGDPRatio;
+        });
+
+    //creating line chart and adding animation to it
+    svg.append("path")
+        .datum(data)
+        .attr("fill", "none")
+        .attr("stroke", "#889b73")
+        .attr("stroke-width", 2.5)
+        .attr("d", d3.line()
+        .x(function(d) { return x(d.Year) })
+        .y(function(d) { return y(d.WorkerProductivity) })
+        )
+        .on("mouseover", function(){ 
+        loc = d3.mouse(this);
+        let year = Math.trunc(z.invert(loc[0]));
+        let str = dict[year+1];
+        div.style.left = String(loc[0]+140)+'px';
+        div.style.top = String(loc[1]+830)+'px';
+        div.innerHTML = "Debt to GDP Ratio: " + str + "%";
+
+        })
+        .on("mouseout", function() {
+        div.innerHTML = "";
+        });
+
+    //adding labels
+    svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x))
+        .append("text")
+        .attr("y", 40)
+        .attr("x", 300)
+        .attr("text-anchor", "end")
+        .attr("fill", "black")
+        .attr("font-size", "20px")
+        .text("Year");
+
+    svg.append("g")
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -60)
+        .attr("x", -270)
+        .attr("dx", "5.1em")
+        .attr("text-anchor", "end")
+        .attr("fill", "black")
+        .attr("font-size", "20px")
+        .text("Growth in Worker Productivity");
+
+    // ------------------------------------------------
+    // ------------------------------------------------
+    // ------------------------------------------------
+
+//2nd visualization    
+var margin2 = {top: 50, right: 50, bottom: 50, left: 100},
+    width2 = 700 - margin2.left - margin2.right,
+    height2 = 700 - margin2.top - margin2.bottom;
+
+var div2 = document.getElementById('labelTing');
+
+var svg2 = d3.select("#bar").append("svg")
+    .attr("width", width2 + margin2.left + margin2.right)
+    .attr("height", height2 + margin2.top + margin2.bottom)
+    .attr("position", "relative")
+    .append("g")
+    .attr("transform","translate(" + margin2.left + "," + margin2.top + ")");
+
+    svg2.append("text")
+    .attr("transform", "translate(100,0)")
+    .attr("x", -30)
+    .attr("y", -25) 
+    .attr("font-size", "24px")
+    .text("Growth in Worker Productivity Per Year")
+
+    //reading the data
+    d3.csv("macroecon.csv", function(error, data) {
+      if (error) {
+        throw error;
+      }
+    
+    //creating scales
+    var y2 = d3.scaleLinear()
+      .domain([0, d3.max(data, function(d) { return +d.GDP; })])
+      .range([ height, 0 ]);
+    svg2.append("g")
+      .call(d3.axisLeft(y2)
+      .tickFormat(function(d) {
+        return '$'+d;
+      }));
+
+    var x2 = d3.scaleBand()
+      .domain(data.map(function(d) { return +d.Year; }))
+      .range([ 0,width2 ])
+      .padding(0.4);
+    svg2.append("g")
+        .attr("transform", "translate(0," + height2 + ")")
+        .call(d3.axisBottom(x2));
+
+    var z2 = d3.scaleLinear()
+      .domain( [d3.min(data, function(d){return d.Year;}), d3.max(data, function(d){return d.Year;})] )
+      .range([ 0, width2 ]);
+
+    var dict = {};
+    data.map(function (d) {
+      dict[d.Year] = d.GDPCapita;
+    });
+
+    //creating the bar chart and adding animation to it
+    svg2.selectAll(".bar")
+        .data(data)
+        .enter().append("rect")
+        .attr("class", "bar")
+        .attr("x", function(d) { return x2(d.Year); })
+        .attr("y", function(d) { return y2(d.GDP); })
+        .attr("width", x2.bandwidth())
+        .attr("height", function(d) { return height2 - y2(d.GDP); })
+        .on("mouseover", function(){ 
+          loc = d3.mouse(this);
+          let year = Math.trunc(z2.invert(loc[0]));
+          let str = dict[year+1];
+          div2.style.left = String(loc[0]+100)+'px';
+          div2.style.top = String(loc[1]+5)+'px';
+          div2.innerHTML = "GDP per capita: $" + str;
+
+        })
+        .on("mouseout", function() {
+          div2.innerHTML = "";
+        });
+    //adding labels
+    svg2.append("g")
+        .attr("transform", "translate(0," + height2 + ")")
+        .call(d3.axisBottom(x2))
+        .append("text")
+        .attr("y", 40)
+        .attr("x", 300)
+        .attr("text-anchor", "end")
+        .attr("fill", "black")
+        .attr("font-size", "20px")
+        .text("Year");
+
+    svg2.append("g")
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -60)
+        .attr("x", -350)
+        .attr("dx", "5.1em")
+        .attr("text-anchor", "end")
+        .attr("fill", "black")
+        .attr("font-size", "20px")
+        .text("Gross GDP (in billion USD)");
+   
+});
+
+});
+</script>
+</html>
+
+
+
