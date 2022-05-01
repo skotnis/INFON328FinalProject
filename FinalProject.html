@@ -136,10 +136,10 @@ var svg2 = d3.select("#bar").append("svg")
 
     svg2.append("text")
     .attr("transform", "translate(100,0)")
-    .attr("x", -30)
+    .attr("x", 70)
     .attr("y", -25) 
     .attr("font-size", "24px")
-    .text("Growth in Worker Productivity Per Year")
+    .text("Gross GDP Per Year")
 
     //reading the data
     d3.csv("macroecon.csv", function(error, data) {
